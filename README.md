@@ -32,7 +32,17 @@ This module will download images (one-by-one) from Dropbox and use it as a fulls
 cd ~/MagicMirror/modules
 git clone https://github.com/MMRIZE/MMM-DropboxPictures
 cd MMM-DropboxPictures
-npm install
+npm ci
+```
+
+## Update
+
+To update this module, navigate to the module directory, pull the latest changes and install the dependencies:
+
+```sh
+cd ~/MagicMirror/modules/MMM-DropboxPictures
+git pull
+npm ci
 ```
 
 ## Preparation
