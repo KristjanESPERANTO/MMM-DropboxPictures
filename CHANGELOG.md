@@ -1,9 +1,26 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [3.1.1](https://github.com/MMRIZE/MMM-DropboxPictures/compare/v3.1.0...v3.1.1) (2026-01-03)
+
+
+### Documentation
+
+* add Code of Conduct file ([d821209](https://github.com/MMRIZE/MMM-DropboxPictures/commit/d821209e570982eb38390d3bbb8bcf15089679a2))
+* add update instructions ([29b07d2](https://github.com/MMRIZE/MMM-DropboxPictures/commit/29b07d29bf583951a14c1fdae1af3fdf977b4fb1))
+
+
+### Chores
+
+* add Dependabot configuration for GitHub Actions and npm ([ae66562](https://github.com/MMRIZE/MMM-DropboxPictures/commit/ae6656250349f34cc288ba70a981a7ff516cd762))
+* add release script and commit-and-tag-version for versioning ([26e07f1](https://github.com/MMRIZE/MMM-DropboxPictures/commit/26e07f1c17b85dbd27524d21303e94f429126042))
+* update dependencies ([2ab6d2b](https://github.com/MMRIZE/MMM-DropboxPictures/commit/2ab6d2bebffb3931c6cc6403f6f1a3f19c126292))
+
+
+### Continuous Integration
+
+* add automated testing workflow for linting ([524edf4](https://github.com/MMRIZE/MMM-DropboxPictures/commit/524edf4fcdac1e834ec02892d7789c4e6f1f3b0a))
 
 ## [3.1.0](https://github.com/MMRIZE/MMM-DropboxPictures/compare/v3.0.0...v3.1.0) - 2025-07-20
 
