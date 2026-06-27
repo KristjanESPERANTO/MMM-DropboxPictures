@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
     response_type: 'code',
     redirect_uri: redirectUri,
     token_access_type: 'offline', // For refresh token
-    scope: 'files.metadata.read files.content.read files.content.write',
+    scope: 'files.metadata.read files.content.read',
     code_challenge: pkce.codeChallenge,
     code_challenge_method: 'S256',
     include_granted_scopes: 'user'

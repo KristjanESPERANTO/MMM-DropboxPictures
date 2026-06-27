@@ -82,6 +82,8 @@ node auth.js
 4. It will instruct you to open a browser and navigate to `http://localhost:3000/auth`. Follow that. You may be requested to confirm auth for this module.
 5. After auth, the `credentials.json` file would be created.
 
+The auth script requests an offline Dropbox token and stores both an access token and a refresh token in `credentials.json`. The module automatically refreshes the access token before it expires, and retries once after a Dropbox `401` response by refreshing the token. Keep `DROPBOX_APP_KEY` and `DROPBOX_APP_SECRET` in `.env`, and make sure the MagicMirror process can write to `credentials.json` because refreshed access tokens are saved back to that file.
+
 ### 3. Get LocationIQ API Key (optional)
 
 1. Visit http://locationiq.org and sign up.
