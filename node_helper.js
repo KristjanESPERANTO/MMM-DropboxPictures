@@ -1,7 +1,8 @@
 const path = require('path')
-require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 const fs = require('fs')
 const exifr = require('exifr')
+
+process.loadEnvFile(path.resolve(__dirname, '.env'))
 
 const STORE = path.join(__dirname, 'cache')
 const LOCATIONIQ_URL = 'https://us1.locationiq.org/v1/reverse?'

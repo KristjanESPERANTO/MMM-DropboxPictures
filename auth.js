@@ -1,4 +1,3 @@
-require("dotenv").config()
 const nodeCrypto = require("node:crypto")
 const fs = require("node:fs")
 const app = require("express")()
@@ -32,7 +31,7 @@ app.get("/", (req, res) => {
     code_challenge_method: 'S256',
     include_granted_scopes: 'user'
   }).toString()
-  
+
   console.log('Redirecting to Dropbox authorization:', authUrl)
   res.writeHead(302, { Location: authUrl })
   res.end()
@@ -40,7 +39,7 @@ app.get("/", (req, res) => {
 
 app.get("/auth", async (req, res) => {
   const { code } = req.query
-  
+
   try {
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://api.dropboxapi.com/oauth2/token', {
@@ -57,15 +56,15 @@ app.get("/auth", async (req, res) => {
         code_verifier: pkce.codeVerifier
       })
     })
-    
+
     if (!tokenResponse.ok) {
       throw new Error(`Token exchange failed: ${tokenResponse.status} ${await tokenResponse.text()}`)
     }
-    
+
     const tokenData = await tokenResponse.json()
     console.log('Token received successfully!')
     console.log('Scopes:', tokenData.scope)
-    
+
     // Prepare credentials object
     const credentials = {
       access_token: tokenData.access_token,
@@ -77,13 +76,13 @@ app.get("/auth", async (req, res) => {
       account_id: tokenData.account_id,
       created_at: new Date().toISOString()
     }
-    
+
     // Save credentials to file
     fs.writeFileSync("credentials.json", JSON.stringify(credentials, null, 2))
-    
+
     const message = "Successfully authenticated. You may now close the browser. Check credentials.json file."
     console.log(message)
-    
+
     res.writeHead(200, { 'Content-Type': 'text/html' })
     res.end(`
       <html>
@@ -95,10 +94,10 @@ app.get("/auth", async (req, res) => {
         </body>
       </html>
     `)
-    
+
     // Exit after a short delay to allow response to be sent
     setTimeout(() => process.exit(0), 1000)
-    
+
   } catch (error) {
     console.error('Authentication error:', error)
     res.writeHead(500, { 'Content-Type': 'text/html' })
