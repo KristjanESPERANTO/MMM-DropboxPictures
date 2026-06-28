@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [3.1.2](https://github.com/MMRIZE/MMM-DropboxPictures/compare/v3.1.1...v3.1.2) (2026-06-28)
+
+
+### Fixed
+
+* **dropbox:** cache reverse geocode hits ([7938bf7](https://github.com/MMRIZE/MMM-DropboxPictures/commit/7938bf795f551b8bf71d7bde4ead781a874260c5))
+
+
+### Chores
+
+* add unit tests ([7516c27](https://github.com/MMRIZE/MMM-DropboxPictures/commit/7516c274a57368cfbe101124410ab0a8c335b85b))
+* correct indentation in README configuration examples ([ff6dac6](https://github.com/MMRIZE/MMM-DropboxPictures/commit/ff6dac691d18ac44f7685eaa7be259a70cac1706))
+* **package:** fix package metadata ([b91ad6b](https://github.com/MMRIZE/MMM-DropboxPictures/commit/b91ad6bc160a43b540add038d4d8c9e61e16774a))
+* update .prettierignore to include CHANGELOG.md and README.md ([1baa541](https://github.com/MMRIZE/MMM-DropboxPictures/commit/1baa5419f9b4c218ac8e99f485c921ea3a0d2d9d))
+* update dependencies ([c8d342f](https://github.com/MMRIZE/MMM-DropboxPictures/commit/c8d342f281b97dfef4c98a6bc3fae5d6e8e35f6c))
+
+
+### Code Refactoring
+
+* **config:** use native env file loading ([7d006d1](https://github.com/MMRIZE/MMM-DropboxPictures/commit/7d006d1dd1b91e5a1458cdf1a9bd67155e98305a))
+* **tests:** group tests ([38bbac5](https://github.com/MMRIZE/MMM-DropboxPictures/commit/38bbac5c0e2762a30862e08cb39d6d8ba096d372))
+
+
+### Continuous Integration
+
+* update branch names in automated tests workflow ([e211014](https://github.com/MMRIZE/MMM-DropboxPictures/commit/e211014606b5deba3b6c5b1c377f28d7bac54d92))
+
 ## [3.1.1](https://github.com/MMRIZE/MMM-DropboxPictures/compare/v3.1.0...v3.1.1) (2026-01-03)
 
 
