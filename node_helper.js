@@ -8,6 +8,8 @@ const LOCATIONIQ_URL = 'https://us1.locationiq.org/v1/reverse?'
 const GEO_CACHE_LIMIT = 5000
 const DROPBOX_API_BASE = 'https://api.dropboxapi.com/2'
 const DROPBOX_CONTENT_BASE = 'https://content.dropboxapi.com/2'
+const DROPBOX_TOKEN_URL = 'https://api.dropboxapi.com/oauth2/token'
+const TOKEN_REFRESH_MARGIN = 60_000
 
 var log = () => { }
 
@@ -17,6 +19,7 @@ const NodeHelper = require('node_helper')
 module.exports = NodeHelper.create({
   start: function () {
     this.credentials = require('./credentials.json')
+    this.credentialsPath = path.resolve(__dirname, 'credentials.json')
   },
 
   socketNotificationReceived: async function (noti, payload) {
@@ -41,8 +44,76 @@ module.exports = NodeHelper.create({
     this.sendSocketNotification('INITIALIZED')
   },
 
+  isAccessTokenExpired: function () {
+    if (!this.credentials.expires_at) return false
+    return Date.now() + TOKEN_REFRESH_MARGIN >= this.credentials.expires_at
+  },
+
+  saveCredentials: function () {
+    fs.writeFileSync(this.credentialsPath, JSON.stringify(this.credentials, null, 2))
+  },
+
+  refreshAccessToken: async function () {
+    if (!this.credentials.refresh_token) return
+    if (!process.env.DROPBOX_APP_KEY) {
+      throw new Error('DROPBOX_APP_KEY is required to refresh Dropbox access tokens.')
+    }
+    if (this.refreshPromise) return this.refreshPromise
+
+    this.refreshPromise = (async () => {
+      const body = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: this.credentials.refresh_token,
+        client_id: process.env.DROPBOX_APP_KEY,
+      })
+
+      if (process.env.DROPBOX_APP_SECRET) {
+        body.set('client_secret', process.env.DROPBOX_APP_SECRET)
+      }
+
+      const response = await fetch(DROPBOX_TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Dropbox token refresh failed (${response.status}): ${errorText}`)
+      }
+
+      const tokenData = await response.json()
+      this.credentials = {
+        ...this.credentials,
+        access_token: tokenData.access_token,
+        expires_in: tokenData.expires_in,
+        expires_at: Date.now() + tokenData.expires_in * 1000 - 10000,
+        token_type: tokenData.token_type ?? this.credentials.token_type,
+        scope: tokenData.scope ?? this.credentials.scope,
+        refreshed_at: new Date().toISOString(),
+      }
+      this.accessToken = this.credentials.access_token
+      this.saveCredentials()
+      log('[DBXP] Dropbox access token refreshed.')
+    })().finally(() => {
+      this.refreshPromise = null
+    })
+
+    return this.refreshPromise
+  },
+
+  ensureAccessToken: async function () {
+    if (this.isAccessTokenExpired()) {
+      await this.refreshAccessToken()
+    }
+  },
+
   // Helper function to make Dropbox API calls
-  dropboxRequest: async function(endpoint, body = null, useContentApi = false) {
+  dropboxRequest: async function(endpoint, body = null, useContentApi = false, retry = true) {
+    await this.ensureAccessToken()
+
     const baseUrl = useContentApi ? DROPBOX_CONTENT_BASE : DROPBOX_API_BASE
     const url = `${baseUrl}${endpoint}`
     
@@ -59,6 +130,11 @@ module.exports = NodeHelper.create({
     }
     
     const response = await fetch(url, options)
+
+    if (response.status === 401 && retry && this.credentials.refresh_token) {
+      await this.refreshAccessToken()
+      return this.dropboxRequest(endpoint, body, useContentApi, false)
+    }
     
     if (!response.ok) {
       const errorText = await response.text()
@@ -69,7 +145,9 @@ module.exports = NodeHelper.create({
   },
 
   // Helper function for content downloads
-  dropboxDownload: async function(endpoint, body) {
+  dropboxDownload: async function(endpoint, body, retry = true) {
+    await this.ensureAccessToken()
+
     const url = `${DROPBOX_CONTENT_BASE}${endpoint}`
     
     const options = {
@@ -81,6 +159,11 @@ module.exports = NodeHelper.create({
     }
     
     const response = await fetch(url, options)
+
+    if (response.status === 401 && retry && this.credentials.refresh_token) {
+      await this.refreshAccessToken()
+      return this.dropboxDownload(endpoint, body, false)
+    }
     
     if (!response.ok) {
       const errorText = await response.text()
