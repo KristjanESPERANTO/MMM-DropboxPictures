@@ -107,10 +107,10 @@ LOCATIONIQ_TOKEN=0ba...456
 ### Simplest
 
 ```js
-{
-  module: 'MMM-DropboxPictures',
-  position: 'fullscreen_below',
-},
+    {
+      module: 'MMM-DropboxPictures',
+      position: 'fullscreen_below',
+    },
 ```
 
 > This configuration will try to search all images from your Dropbox account and will serve by default config values. Images will show on fullscreen below of MM screen.
@@ -119,35 +119,34 @@ LOCATIONIQ_TOKEN=0ba...456
 ### Real usage example.
 
 ```js
-// For Full Dropbox app accessing a specific folder
-{
-  module: 'MMM-DropboxPictures',
-  position: 'top_left', // `fullscreen_below` is more usual.
-  //header: "DROPBOX",
-  config: {
-    verbose: true,
-    imageLife: 1000 * 60 * 30, // 30 minutes
-    directory: "/Photos", // For Full Dropbox: absolute path with /
-    fileNames: [ "DSC", /^IMG/ ],
-    width: "400px", // For fullscreen, "100%" would be fit.
-    height: "400px",
-    ...
-  }
-},
+    // For Full Dropbox app accessing a specific folder
+    {
+      module: 'MMM-DropboxPictures',
+      position: 'top_left', // `fullscreen_below` is more usual.
+      //header: "DROPBOX",
+      config: {
+        verbose: true,
+        imageLife: 1000 * 60 * 30, // 30 minutes
+        directory: "/Photos", // For Full Dropbox: absolute path with /
+        fileNames: [ "DSC", /^IMG/ ],
+        width: "400px", // For fullscreen, "100%" would be fit.
+        height: "400px",
+        ...
+      }
+    },
 
-// For App-folder app (most common setup)
-{
-  module: 'MMM-DropboxPictures',
-  position: 'fullscreen_below',
-  config: {
-    verbose: true,
-    imageLife: 1000 * 60 * 30, // 30 minutes
-    directory: "", // Empty string = scan entire app folder /Apps/YourAppName/
-    // OR: directory: "photos", // Scan /Apps/YourAppName/photos/
-    ...
-  }
-},
-
+    // For App-folder app (most common setup)
+    {
+      module: 'MMM-DropboxPictures',
+      position: 'fullscreen_below',
+      config: {
+        verbose: true,
+        imageLife: 1000 * 60 * 30, // 30 minutes
+        directory: "", // Empty string = scan entire app folder /Apps/YourAppName/
+        // OR: directory: "photos", // Scan /Apps/YourAppName/photos/
+        ...
+      }
+   },
 ```
 
 ### Configuration Properties with default values
@@ -207,7 +206,7 @@ You can limit the file extensions to scan.
 You can filter the scanned files with its name. These values are array of **string** or **regular expression**.
 
 ```js
-fileNames: ["IMG", /^DSC_/],
+    fileNames: ["IMG", /^DSC_/],
 ```
 
 This will search files - 1) "IMG" is included in its file name or 2) the filename starts with "DSC\_".
