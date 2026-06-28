@@ -11,7 +11,11 @@
     "Image"
   ],
   "license": "MIT",
-  "repository": "https://github.com/MMRIZE/MMM-DropboxPictures",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MMRIZE/MMM-DropboxPictures.git"
+  },
   "scripts": {
     "lint": "eslint && prettier . --check",
     "lint:fix": "eslint --fix && prettier . --write",
