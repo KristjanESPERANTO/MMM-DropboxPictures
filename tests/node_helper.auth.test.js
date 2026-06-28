@@ -1,24 +1,27 @@
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
-const test = require('node:test')
+const { describe, it } = require('node:test')
 
 const { createHelperState } = require('./helpers/node-helper-test-utils.js')
 
-test('isAccessTokenExpired returns false when expires_at is missing', () => {
+describe('isAccessTokenExpired', () => {
+  it('returns false when expires_at is missing', () => {
   const helper = createHelperState()
   delete helper.credentials.expires_at
 
-  assert.equal(helper.isAccessTokenExpired(), false)
-})
+    assert.equal(helper.isAccessTokenExpired(), false)
+  })
 
-test('isAccessTokenExpired returns true when token is near expiry margin', () => {
+  it('returns true when token is near expiry margin', () => {
   const helper = createHelperState()
   helper.credentials.expires_at = Date.now() + 10_000
 
-  assert.equal(helper.isAccessTokenExpired(), true)
+    assert.equal(helper.isAccessTokenExpired(), true)
+  })
 })
 
-test('refreshAccessToken returns without fetch when refresh_token is missing', async () => {
+describe('refreshAccessToken', () => {
+  it('returns without fetch when refresh_token is missing', async () => {
   const helper = createHelperState()
   const originalFetch = global.fetch
   delete helper.credentials.refresh_token
@@ -31,13 +34,13 @@ test('refreshAccessToken returns without fetch when refresh_token is missing', a
 
   await helper.refreshAccessToken()
 
-  assert.equal(fetchCalled, false)
-  assert.equal(helper.accessToken, 'old-token')
+    assert.equal(fetchCalled, false)
+    assert.equal(helper.accessToken, 'old-token')
 
-  global.fetch = originalFetch
-})
+    global.fetch = originalFetch
+  })
 
-test('refreshAccessToken throws when DROPBOX_APP_KEY is missing', async () => {
+  it('throws when DROPBOX_APP_KEY is missing', async () => {
   const helper = createHelperState()
   const originalAppKey = process.env.DROPBOX_APP_KEY
   delete process.env.DROPBOX_APP_KEY
@@ -47,10 +50,10 @@ test('refreshAccessToken throws when DROPBOX_APP_KEY is missing', async () => {
     /DROPBOX_APP_KEY is required to refresh Dropbox access tokens\./,
   )
 
-  process.env.DROPBOX_APP_KEY = originalAppKey
-})
+    process.env.DROPBOX_APP_KEY = originalAppKey
+  })
 
-test('refreshAccessToken updates token and persists credentials', async () => {
+  it('updates token and persists credentials', async () => {
   const helper = createHelperState()
   const originalAppKey = process.env.DROPBOX_APP_KEY
   const originalSecret = process.env.DROPBOX_APP_SECRET
@@ -79,12 +82,12 @@ test('refreshAccessToken updates token and persists credentials', async () => {
   const persisted = JSON.parse(fs.readFileSync(helper.credentialsPath, 'utf8'))
   assert.equal(persisted.access_token, 'new-token')
 
-  process.env.DROPBOX_APP_KEY = originalAppKey
-  process.env.DROPBOX_APP_SECRET = originalSecret
-  global.fetch = originalFetch
-})
+    process.env.DROPBOX_APP_KEY = originalAppKey
+    process.env.DROPBOX_APP_SECRET = originalSecret
+    global.fetch = originalFetch
+  })
 
-test('refreshAccessToken deduplicates concurrent refresh calls', async () => {
+  it('deduplicates concurrent refresh calls', async () => {
   const helper = createHelperState()
   const originalAppKey = process.env.DROPBOX_APP_KEY
   const originalFetch = global.fetch
@@ -104,14 +107,14 @@ test('refreshAccessToken deduplicates concurrent refresh calls', async () => {
 
   await Promise.all([helper.refreshAccessToken(), helper.refreshAccessToken()])
 
-  assert.equal(callCount, 1)
-  assert.equal(helper.accessToken, 'single-flight-token')
+    assert.equal(callCount, 1)
+    assert.equal(helper.accessToken, 'single-flight-token')
 
-  process.env.DROPBOX_APP_KEY = originalAppKey
-  global.fetch = originalFetch
-})
+    process.env.DROPBOX_APP_KEY = originalAppKey
+    global.fetch = originalFetch
+  })
 
-test('refreshAccessToken clears refreshPromise after failed refresh', async () => {
+  it('clears refreshPromise after failed refresh', async () => {
   const helper = createHelperState()
   const originalAppKey = process.env.DROPBOX_APP_KEY
   const originalFetch = global.fetch
@@ -127,13 +130,15 @@ test('refreshAccessToken clears refreshPromise after failed refresh', async () =
     helper.refreshAccessToken(),
     /Dropbox token refresh failed \(500\): internal error/,
   )
-  assert.equal(helper.refreshPromise, null)
+    assert.equal(helper.refreshPromise, null)
 
-  process.env.DROPBOX_APP_KEY = originalAppKey
-  global.fetch = originalFetch
+    process.env.DROPBOX_APP_KEY = originalAppKey
+    global.fetch = originalFetch
+  })
 })
 
-test('ensureAccessToken refreshes only when token is expired', async () => {
+describe('ensureAccessToken', () => {
+  it('refreshes only when token is expired', async () => {
   const helper = createHelperState()
 
   let refreshCount = 0
@@ -147,5 +152,6 @@ test('ensureAccessToken refreshes only when token is expired', async () => {
   helper.credentials.expires_at = Date.now() + 120_000
   await helper.ensureAccessToken()
 
-  assert.equal(refreshCount, 1)
+    assert.equal(refreshCount, 1)
+  })
 })

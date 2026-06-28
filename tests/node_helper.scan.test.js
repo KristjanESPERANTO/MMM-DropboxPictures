@@ -1,9 +1,10 @@
 const assert = require('node:assert/strict')
-const test = require('node:test')
+const { describe, it } = require('node:test')
 
 const { createHelperState } = require('./helpers/node-helper-test-utils.js')
 
-test('scan filters non-files, non-downloadables, and extensions', async () => {
+describe('scan', () => {
+  it('filters non-files, non-downloadables, and extensions', async () => {
   const helper = createHelperState()
 
   helper.dropboxRequest = async (endpoint) => {
@@ -28,11 +29,11 @@ test('scan filters non-files, non-downloadables, and extensions', async () => {
     fileExtensions: ['jpg'],
   })
 
-  assert.equal(result.scanned.length, 1)
-  assert.equal(result.scanned[0].name, 'keep.JPG')
-})
+    assert.equal(result.scanned.length, 1)
+    assert.equal(result.scanned[0].name, 'keep.JPG')
+  })
 
-test('scan tries directory path variations and uses first valid folder', async () => {
+  it('tries directory path variations and uses first valid folder', async () => {
   const helper = createHelperState()
   const metadataPaths = []
   let listFolderPath = null
@@ -60,12 +61,12 @@ test('scan tries directory path variations and uses first valid folder', async (
     fileExtensions: [],
   })
 
-  assert.equal(result.scanned.length, 0)
-  assert.deepEqual(metadataPaths, ['/Photos', 'Photos'])
-  assert.equal(listFolderPath, 'Photos')
-})
+    assert.equal(result.scanned.length, 0)
+    assert.deepEqual(metadataPaths, ['/Photos', 'Photos'])
+    assert.equal(listFolderPath, 'Photos')
+  })
 
-test('scan follows pagination through list_folder/continue', async () => {
+  it('follows pagination through list_folder/continue', async () => {
   const helper = createHelperState()
 
   helper.dropboxRequest = async (endpoint, body) => {
@@ -102,13 +103,13 @@ test('scan follows pagination through list_folder/continue', async () => {
     fileExtensions: ['jpg'],
   })
 
-  assert.deepEqual(
-    result.scanned.map((item) => item.name),
-    ['1.jpg', '2.jpg', '3.jpg'],
-  )
-})
+    assert.deepEqual(
+      result.scanned.map((item) => item.name),
+      ['1.jpg', '2.jpg', '3.jpg'],
+    )
+  })
 
-test('scan falls back to root when all directory variations fail', async () => {
+  it('falls back to root when all directory variations fail', async () => {
   const helper = createHelperState()
   const metadataPaths = []
   let rootScanned = false
@@ -133,7 +134,8 @@ test('scan falls back to root when all directory variations fail', async () => {
     fileExtensions: [],
   })
 
-  assert.equal(result.scanned.length, 0)
-  assert.deepEqual(metadataPaths, ['/Missing', 'Missing', '/Missing'])
-  assert.equal(rootScanned, true)
+    assert.equal(result.scanned.length, 0)
+    assert.deepEqual(metadataPaths, ['/Missing', 'Missing', '/Missing'])
+    assert.equal(rootScanned, true)
+  })
 })
