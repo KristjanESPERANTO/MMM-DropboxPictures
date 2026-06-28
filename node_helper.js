@@ -116,7 +116,7 @@ module.exports = NodeHelper.create({
 
     const baseUrl = useContentApi ? DROPBOX_CONTENT_BASE : DROPBOX_API_BASE
     const url = `${baseUrl}${endpoint}`
-    
+
     const options = {
       method: 'POST',
       headers: {
@@ -124,23 +124,23 @@ module.exports = NodeHelper.create({
         'Content-Type': 'application/json',
       }
     }
-    
+
     if (body) {
       options.body = JSON.stringify(body)
     }
-    
+
     const response = await fetch(url, options)
 
     if (response.status === 401 && retry && this.credentials.refresh_token) {
       await this.refreshAccessToken()
       return this.dropboxRequest(endpoint, body, useContentApi, false)
     }
-    
+
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`Dropbox API Error (${response.status}): ${errorText}`)
     }
-    
+
     return response.json()
   },
 
@@ -149,7 +149,7 @@ module.exports = NodeHelper.create({
     await this.ensureAccessToken()
 
     const url = `${DROPBOX_CONTENT_BASE}${endpoint}`
-    
+
     const options = {
       method: 'POST',
       headers: {
@@ -157,19 +157,19 @@ module.exports = NodeHelper.create({
         'Dropbox-API-Arg': JSON.stringify(body),
       }
     }
-    
+
     const response = await fetch(url, options)
 
     if (response.status === 401 && retry && this.credentials.refresh_token) {
       await this.refreshAccessToken()
       return this.dropboxDownload(endpoint, body, false)
     }
-    
+
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`Dropbox Download Error (${response.status}): ${errorText}`)
     }
-    
+
     return {
       result: {
         fileBinary: await response.arrayBuffer()
@@ -181,24 +181,24 @@ module.exports = NodeHelper.create({
   scan: async function (options) {
     log = (options.verbose) ? console.log : () => { }
     const scanned = []
-    
+
     const processItem = async (item) => {
       if (item[ '.tag' ] !== 'file') return
       if (!item.is_downloadable) return
-      
+
       // Filter by file extension if provided
       if (options.fileExtensions && options.fileExtensions.length > 0) {
         const fileExt = item.name.split('.').pop().toLowerCase()
         if (!options.fileExtensions.includes(fileExt)) return
       }
-      
+
       scanned.push(item)
     }
 
     const scanFolder = async (folderPath = '') => {
       try {
         log(`[DBXP] Scanning folder: ${folderPath || '/'}`)
-        
+
         const listArgs = {
           path: folderPath,
           recursive: true,
@@ -208,23 +208,23 @@ module.exports = NodeHelper.create({
           include_mounted_folders: true,
           limit: 2000
         }
-        
+
         const result = await this.dropboxRequest('/files/list_folder', listArgs)
-        
+
         for (const item of result.entries) {
           await processItem(item)
         }
-        
+
         // Handle pagination if needed
         if (result.has_more) {
           await continueListFolder(result.cursor)
         }
-        
+
       } catch (err) {
         if (err.message.includes('path/not_found')) {
           console.error(`[DBXP] Folder not found: ${folderPath}`)
           log(`[DBXP] Let's list the root directory to see available folders...`)
-          
+
           try {
             // List root directory to show available folders
             const rootResult = await this.dropboxRequest('/files/list_folder', { path: '' })
@@ -240,15 +240,15 @@ module.exports = NodeHelper.create({
         }
       }
     }
-    
+
     const continueListFolder = async (cursor) => {
       try {
         const result = await this.dropboxRequest('/files/list_folder/continue', { cursor })
-        
+
         for (const item of result.entries) {
           await processItem(item)
         }
-        
+
         if (result.has_more) {
           await continueListFolder(result.cursor)
         }
@@ -259,10 +259,10 @@ module.exports = NodeHelper.create({
 
     try {
       log('[DBXP] Starting scan.')
-      
+
       // Try different path variations
       let targetPath = options.directory || ''
-      
+
       if (targetPath) {
         // Try common path variations
         const pathVariations = [
@@ -270,7 +270,7 @@ module.exports = NodeHelper.create({
           targetPath.replace(/^\//, ''),        // Without leading slash (e.g., "Photos")
           `/${targetPath.replace(/^\//, '')}`,  // Ensure single leading slash
         ]
-        
+
         let foundPath = null
         for (const pathVariant of pathVariations) {
           try {
@@ -285,7 +285,7 @@ module.exports = NodeHelper.create({
             log(`[DBXP] Path "${pathVariant}" not found, trying next...`)
           }
         }
-        
+
         if (foundPath) {
           await scanFolder(foundPath)
         } else {
@@ -313,14 +313,14 @@ module.exports = NodeHelper.create({
           const thumbnailSize = availableThumbnailSizes.find((s) => { return s === options.thumbnail })
           if (!thumbnailSize) return false
           const size = 'w' + thumbnailSize.replace('x', 'h')
-          
+
           const thumbnailArgs = {
             resource: { path: item.path_lower, '.tag': 'path' },
             format: { '.tag': 'jpeg' },
             size: { '.tag': size },
             mode: { '.tag': 'fitone_bestfit' },
           }
-          
+
           const result = await this.dropboxDownload('/files/get_thumbnail_v2', thumbnailArgs)
           return result
         } catch (err) {
@@ -332,6 +332,10 @@ module.exports = NodeHelper.create({
       const getReverseGeocode = async function ({ latitude = null, longitude = null } = {}) {
         const useReverseGeocoding = process.env.LOCATIONIQ_TOKEN && options.reverseGeocoding
         if (!useReverseGeocoding || !(latitude && longitude)) return null
+
+        if (geoCache.has(`${latitude},${longitude}`)) {
+          return geoCache.get(`${latitude},${longitude}`).address
+        }
 
         const res = await fetch(
           LOCATIONIQ_URL
@@ -346,24 +350,20 @@ module.exports = NodeHelper.create({
           }
           ))
 
-        if (geoCache.has(`${latitude},${longitude}`)) {
-          return geoCache.get(`${latitude},${longitude}`).address
-        } else {
-          const data = await res.json()
-          if (data?.address) {
-            geoCache.set(`${latitude},${longitude}`, {
-              address: data.address,
-              timeStamp: Date.now(),
-            })
-            if (geoCache.size > GEO_CACHE_LIMIT) {
-              geoCache.delete(geoCache.keys().next().value)
-            }
-            return data.address
+        const data = await res.json()
+        if (data?.address) {
+          geoCache.set(`${latitude},${longitude}`, {
+            address: data.address,
+            timeStamp: Date.now(),
+          })
+          if (geoCache.size > GEO_CACHE_LIMIT) {
+            geoCache.delete(geoCache.keys().next().value)
           }
-          return {}
+          return data.address
         }
+        return {}
       }
-      
+
       let result = await tryThumbnail(item, options)
       if (!result) {
         result = await this.dropboxDownload('/files/download', { path: item.path_lower })
